@@ -10,7 +10,7 @@ import json
 # PAGE CONFIG
 # ============================================================
 st.set_page_config(
-    page_title="SentinelDrive — BMW Analytics",
+    page_title="PitSight — BMW Intelligence",
     page_icon="🏎️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -221,8 +221,16 @@ st.markdown(f"""
 # ============================================================
 @st.cache_data
 def load_data():
-    t1 = pd.read_csv('table1.csv')
-    t2 = pd.read_csv('table2.csv')
+    import os
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    t1 = pd.read_csv(os.path.join(base_dir, 'table1.csv'))
+    # table2 is gzipped to fit GitHub's 25MB limit
+    t2_gz = os.path.join(base_dir, 'table2.csv.gz')
+    t2_csv = os.path.join(base_dir, 'table2.csv')
+    if os.path.exists(t2_gz):
+        t2 = pd.read_csv(t2_gz, compression='gzip')
+    else:
+        t2 = pd.read_csv(t2_csv)
     t1['Date'] = pd.to_datetime(t1['Date'], format='%d/%m/%Y')
     t1['Month'] = t1['Date'].dt.month
     t1['MonthName'] = t1['Date'].dt.strftime('%b')
@@ -250,8 +258,8 @@ CHART_LAYOUT = dict(
 with st.sidebar:
     st.markdown("""
     <div style="text-align:center;padding:10px 0 20px;">
-        <div style="font-size:1.8rem;font-weight:800;letter-spacing:3px;color:#F0F4F8;">SENTINEL<span style="color:#1A73E8;">DRIVE</span></div>
-        <div style="font-size:0.7rem;color:#5A6B7D;letter-spacing:2px;margin-top:2px;">BMW ANALYTICS PLATFORM</div>
+        <div style="font-size:1.8rem;font-weight:800;letter-spacing:3px;color:#F0F4F8;">PIT<span style="color:#1A73E8;">SIGHT</span></div>
+        <div style="font-size:0.7rem;color:#5A6B7D;letter-spacing:2px;margin-top:2px;">BMW INTELLIGENCE PLATFORM</div>
         <div style="height:3px;background:linear-gradient(90deg,#0066B1,#6E3ECC,#E2001A);border-radius:2px;margin-top:12px;"></div>
     </div>
     """, unsafe_allow_html=True)
@@ -815,7 +823,7 @@ elif page == "🔍 Sentiment Intelligence":
     <div style="background:linear-gradient(135deg,{BMW_COLORS['bg_card']} 0%,{BMW_COLORS['bg_secondary']} 100%);
                 border:1px solid {BMW_COLORS['border']};border-radius:14px;padding:28px;">
         <div style="font-size:1.1rem;font-weight:700;color:{BMW_COLORS['text_primary']};margin-bottom:12px;">
-            Key Findings — SentinelDrive NLP Analysis
+            Key Findings — PitSight NLP Analysis
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:0.88rem;color:{BMW_COLORS['text_secondary']};">
             <div>
