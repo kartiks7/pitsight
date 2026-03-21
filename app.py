@@ -221,16 +221,25 @@ st.markdown(f"""
 # ============================================================
 @st.cache_data
 def load_data():
-    import os
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    t1 = pd.read_csv(os.path.join(base_dir, 'table1.csv'))
+    from pathlib import Path
+    base_dir = Path(__file__).parent.resolve()
+    
+    t1 = pd.read_csv(base_dir / 'table1.csv')
+    
     # table2 is gzipped to fit GitHub's 25MB limit
-    t2_gz = os.path.join(base_dir, 'table2.csv.gz')
-    t2_csv = os.path.join(base_dir, 'table2.csv')
-    if os.path.exists(t2_gz):
-        t2 = pd.read_csv(t2_gz, compression='gzip')
-    else:
-        t2 = pd.read_csv(t2_csv)
+    # Pandas auto-detects .gz compression
+    t2_path = base_dir / 'table2.csv.gz'
+    if not t2_path.exists():
+        t2_path = base_dir / 'table2.csv'
+    if not t2_path.exists():
+        # Debug: show what files exist in the directory
+        files_found = [f.name for f in base_dir.iterdir()]
+        raise FileNotFoundError(
+            f"Cannot find table2.csv.gz or table2.csv in {base_dir}. "
+            f"Files found: {files_found}. "
+            f"Please upload table2.csv.gz to your GitHub repo."
+        )
+    t2 = pd.read_csv(t2_path)
     t1['Date'] = pd.to_datetime(t1['Date'], format='%d/%m/%Y')
     t1['Month'] = t1['Date'].dt.month
     t1['MonthName'] = t1['Date'].dt.strftime('%b')
