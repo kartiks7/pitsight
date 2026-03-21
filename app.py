@@ -394,7 +394,8 @@ elif page == "🔍 Sentiment Intelligence":
     cL, cR = st.columns([1.2, 1])
     with cL:
         st.markdown('<div class="sec">Satisfaction Rate by Model</div>', unsafe_allow_html=True)
-        ms = f2.groupby('Model').apply(lambda x: (x['Sentiment_Label']=='Satisfied').mean()*100).reset_index(name='Sat')
+        ms_raw = f2.groupby('Model')['Sentiment_Label'].apply(lambda x: (x=='Satisfied').mean()*100)
+        ms = ms_raw.reset_index(); ms.columns = ['Model','Sat']
         ms = ms.sort_values('Sat')
         colors = ['#FF5252' if v < 50 else '#FFAB00' if v < 80 else '#00E676' for v in ms['Sat']]
         fig_ms = go.Figure(go.Bar(
@@ -405,10 +406,9 @@ elif page == "🔍 Sentiment Intelligence":
 
     with cR:
         st.markdown('<div class="sec">Satisfaction Trend</div>', unsafe_allow_html=True)
-        ys = f2.groupby('Year').apply(lambda x: pd.Series({
-            'Sat': (x['Sentiment_Label']=='Satisfied').mean()*100,
-            'Svc': x['Service_History'].mean()
-        })).reset_index()
+        sat_by_yr = f2.groupby('Year')['Sentiment_Label'].apply(lambda x: (x=='Satisfied').mean()*100)
+        svc_by_yr = f2.groupby('Year')['Service_History'].mean()
+        ys = pd.DataFrame({'Sat': sat_by_yr, 'Svc': svc_by_yr}).reset_index()
         fig_t = go.Figure()
         fig_t.add_scatter(x=ys['Year'], y=ys['Sat'], name='% Satisfied', mode='lines+markers',
                          line=dict(color='#00E676', width=3), marker=dict(size=7), fill='tozeroy', fillcolor='rgba(0,230,118,0.05)')
